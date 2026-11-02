@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Klasifikasi Telur</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> Klasifikasi & Deteksi Telur</h1>
+            <p class="subtitle">Bentuk, Ukuran, Warna & Kualitas  <b>Metode K-Means</b></p>
+        </header>
+
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            <label for="image" class="dropzone" id="dropzone">
+                <input type="file" name="image" id="image" accept="image/*" required hidden>
+                <div class="dz-content">
+                    <span class="dz-icon">📷</span>
+                    <p><b>Klik untuk upload</b> atau <b>ambil dari kamera HP</b></p>
+                </div>
+                <img id="preview" alt="preview" style="display:none;">
+            </label>
+            <button type="submit" class="btn">🔍 Deteksi Sekarang</button>
+        </form>
+
+        {% if result %}
+            {% if result.error %}
+                <div class="alert error">❌ {{ result.error }}</div>
+            {% else %}
+                <div class="result">
+                    <div class="result-label {{ 'besar' if result.label_ukuran == 'BESAR' else 'kecil' }}">
+                        <h2>Hasil: {{ result.label_ukuran }}</h2>
+                        <p>Ukuran telur terdeteksi <b>{{ result.label_ukuran|lower }}</b></p>
+                    </div>
+
+                    <div class="grid">
+                        
+                        <div class="card" style="grid-column: span 2; background: #fff8f0;">
+                            <h3>🎨 Analisis Warna & Jenis Telur</h3>
+                            <table>
+                                <tr><td>Jenis Telur</td><td><b style="color: #d84315; font-size: 1.1em;">{{ result.fitur_warna.Jenis_Telur }}</b></td></tr>
+                                <tr><td>Kualitas Warna</td><td><b>{{ result.fitur_warna.Kualitas_Warna }}</b></td></tr>
+                                <tr><td>Warna Dominan (RGB)</td><td>{{ result.fitur_warna.Warna_Dominan_RGB }}</td></tr>
+                                <tr><td>Tingkat Corak (Tekstur)</td><td>{{ result.fitur_warna.Tingkat_Corak }}</td></tr>
+                            </table>
+                        </div>
+
+                        <div class="card">
+                            <h3>📊 Fitur Bentuk</h3>
+                            <table>
+                                {% for k, v in result.fitur_bentuk.items() %}
+                                <tr><td>{{ k }}</td><td><b>{{ v }}</b></td></tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+
+                        <div class="card">
+                            <h3>📈 Evaluasi Segmentasi</h3>
+                            <table>
+                                <tr><td>MSE</td><td><b>{{ result.mse }}</b></td></tr>
+                                <tr><td>RMSE</td><td><b>{{ result.rmse }}</b></td></tr>
+                                <tr><td>PSNR</td><td><b>{{ result.psnr }} dB</b></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🖼️ Visualisasi Tahapan</h3>
+                        <img src="{{ result.img_vis }}" alt="visualisasi" class="vis-img">
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        const input = document.getElementById('image');
+        const preview = document.getElementById('preview');
+        const dropzone = document.getElementById('dropzone');
+
+        input.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    preview.src = ev.target.result;
+                    preview.style.display = 'block';
+                    dropzone.querySelector('.dz-content').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
